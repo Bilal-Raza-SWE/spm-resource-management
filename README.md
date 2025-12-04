@@ -21,7 +21,7 @@ An interactive dashboard for Software Project Management Assignment 04, demonstr
 
 ## 🚀 Live Demo
 
-Visit the live dashboard: [View Assignment](https://YOUR_USERNAME.github.io/SPM/)
+Visit the live dashboard: [View Assignment](https://Bilal-Raza-SWE.github.io/spm-resource-management/)
 
 ## 📋 Assignment Tasks
 
