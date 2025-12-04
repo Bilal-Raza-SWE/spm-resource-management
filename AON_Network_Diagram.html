@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AON Network Diagram - Pollution Monitor Agent | SPM Assignment 04 | FAST-NUCES Fall 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 15px;
+        }
+        
+        .team-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .team-member {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .team-member .role-icon {
+            font-size: 1.5rem;
+        }
+        
+        .team-member .info {
+            text-align: left;
+        }
+        
+        .team-member .name {
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .team-member .roll {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .network-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            overflow-x: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        
+        .network-diagram {
+            min-width: 1600px;
+            position: relative;
+        }
+        
+        .phase {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .phase-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .phase-title .icon {
+            font-size: 1.3rem;
+        }
+        
+        .nodes-row {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .node {
+            background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+            border: 3px solid #667eea;
+            border-radius: 16px;
+            padding: 18px;
+            min-width: 220px;
+            max-width: 280px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .node:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        
+        .node.critical {
+            border-color: #e63946;
+            background: linear-gradient(145deg, #fff5f5 0%, #ffe3e3 100%);
+        }
+        
+        .node.critical::before {
+            content: '🔴';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.2rem;
+        }
+        
+        .node.milestone {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+            min-width: 280px;
+        }
+        
+        .node-id {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 5px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .node.critical .node-id {
+            color: #e63946;
+        }
+        
+        .node.milestone .node-id {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .node-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #1a1a2e;
+            line-height: 1.3;
+        }
+        
+        .node.milestone .node-name {
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .node-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .node-duration {
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .node-week {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .node.critical .node-week {
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+        }
+        
+        .node-resource {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .resource-tag {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .node.critical .resource-tag {
+            background: rgba(230, 57, 70, 0.15);
+            color: #e63946;
+        }
+        
+        .node-hours {
+            background: #f0f4f8;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .arrows {
+            text-align: center;
+            padding: 15px 0;
+            font-size: 2rem;
+            color: #667eea;
+            position: relative;
+        }
+        
+        .arrows::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+            transform: translateX(-50%);
+            z-index: -1;
+        }
+        
+        .arrow-icon {
+            background: white;
+            padding: 5px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .legend {
+            margin-top: 40px;
+            padding: 25px;
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .legend h3 {
+            margin-bottom: 20px;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .legend-items {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .legend-box {
+            width: 40px;
+            height: 30px;
+            border-radius: 8px;
+            border: 3px solid;
+        }
+        
+        .legend-box.critical {
+            background: linear-gradient(145deg, #fff5f5 0%, #ffe3e3 100%);
+            border-color: #e63946;
+        }
+        
+        .legend-box.normal {
+            background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+            border-color: #667eea;
+        }
+        
+        .legend-box.milestone {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #764ba2;
+        }
+        
+        .critical-path-info {
+            background: linear-gradient(145deg, #fff5f5 0%, #ffe8e8 100%);
+            border: 2px solid #e63946;
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+        
+        .critical-path-info h4 {
+            color: #e63946;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .critical-path-info p {
+            color: #333;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+        
+        .critical-path-info code {
+            background: rgba(230, 57, 70, 0.1);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-family: 'Consolas', monospace;
+            color: #e63946;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #dee2e6;
+        }
+        
+        .metric-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .metric-card .label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            .team-info {
+                flex-direction: column;
+                align-items: center;
+            }
+            .node {
+                min-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Activity-on-Node (AON) Network Diagram</h1>
+            <p class="subtitle">Pollution Monitor Agent Project | Resource-Constrained Schedule | SPM CS-401 Fall 2025</p>
+            
+            <div class="team-info">
+                <div class="team-member">
+                    <span class="role-icon">👨‍💼</span>
+                    <div class="info">
+                        <div class="name">Abdur Rehman</div>
+                        <div class="roll">i222518 | PM/Backend | 176 hrs</div>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <span class="role-icon">🎨</span>
+                    <div class="info">
+                        <div class="name">Rayyan Ahmed</div>
+                        <div class="roll">i222489 | Frontend/UI | 168 hrs</div>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <span class="role-icon">🤖</span>
+                    <div class="info">
+                        <div class="name">Muhammad Bilal Raza</div>
+                        <div class="roll">i222559 | AI/ML/DevOps | 162 hrs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="network-container">
+            <div class="network-diagram">
+                
+                <!-- Start Milestone -->
+                <div class="phase">
+                    <div class="nodes-row">
+                        <div class="node milestone">
+                            <div class="node-id">MILESTONE</div>
+                            <div class="node-name">🚀 PROJECT START</div>
+                            <div class="node-details">
+                                <span class="node-week">October 7, 2025</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrows"><span class="arrow-icon">⬇️</span></div>
+
+                <!-- Phase 1: Initiation -->
+                <div class="phase">
+                    <div class="phase-title"><span class="icon">📋</span> Phase 1: Project Initiation (Week 1)</div>
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.1.1</div>
+                            <div class="node-name">Requirements Gathering & Stakeholder Analysis</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 1</span>
+                                <span class="node-duration">⏱️ Duration: 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">18 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.1.2</div>
+                            <div class="node-name">Technical Feasibility Study</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 1</span>
+                                <span class="node-duration">⏱️ Duration: 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">18 hrs total</span>
+                        </div>
+                        <div class="node">
+                            <div class="node-id">LEVELED TASK</div>
+                            <div class="node-name">Early UI Research</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 1-2</span>
+                                <span class="node-duration">⏱️ Redistributed</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">10 hrs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrows"><span class="arrow-icon">⬇️</span></div>
+
+                <!-- Phase 2: Planning -->
+                <div class="phase">
+                    <div class="phase-title"><span class="icon">📐</span> Phase 2: Planning & Design (Weeks 2-3)</div>
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.1.3</div>
+                            <div class="node-name">Project Charter</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 2</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">10 hrs</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arrows" style="padding: 8px 0;"><span class="arrow-icon">⬇️</span></div>
+                    
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.2.1</div>
+                            <div class="node-name">System Architecture Design (Microservices)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 2-3</span>
+                                <span class="node-duration">⏱️ 10 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">14 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.2.2</div>
+                            <div class="node-name">Database Schema Design (PostgreSQL + TimescaleDB)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 3</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">8 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.2.4</div>
+                            <div class="node-name">UI/UX Design (Figma Prototypes)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 3</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">18 hrs</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arrows" style="padding: 8px 0;"><span class="arrow-icon">⬇️</span></div>
+                    
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.2.3</div>
+                            <div class="node-name">RESTful API Contract Design (OpenAPI 3.0)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 3</span>
+                                <span class="node-duration">⏱️ 3 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">4 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.3.3.1</div>
+                            <div class="node-name">Data Pipeline Design (ETL Architecture)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 3-4</span>
+                                <span class="node-duration">⏱️ 7 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">12 hrs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrows"><span class="arrow-icon">⬇️</span></div>
+
+                <!-- Phase 3: Development -->
+                <div class="phase">
+                    <div class="phase-title"><span class="icon">💻</span> Phase 3: Development (Weeks 4-7) — LEVELED</div>
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.3.1.1</div>
+                            <div class="node-name">FastAPI REST Endpoints Development</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 4-6</span>
+                                <span class="node-duration">⏱️ 15 days (leveled)</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">58 hrs total</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.3.2.1</div>
+                            <div class="node-name">Dashboard UI Components (React)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 4-7</span>
+                                <span class="node-duration">⏱️ 20 days (leveled)</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">74 hrs total</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.3.3.2</div>
+                            <div class="node-name">LSTM Model Development & Training</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 4-7</span>
+                                <span class="node-duration">⏱️ 20 days (leveled)</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">78 hrs total</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arrows" style="padding: 8px 0;"><span class="arrow-icon">⬇️</span></div>
+                    
+                    <div class="nodes-row">
+                        <div class="node">
+                            <div class="node-id">WBS 1.3.1.2</div>
+                            <div class="node-name">Database Implementation & Migrations</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 5</span>
+                                <span class="node-duration">⏱️ 3 days | Slack: 1 week</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">4 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.3.2.2</div>
+                            <div class="node-name">Data Visualization (D3.js + Chart.js)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 6-7</span>
+                                <span class="node-duration">⏱️ 10 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">24 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.3.3.3</div>
+                            <div class="node-name">Prediction Engine & API Integration</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 6-7</span>
+                                <span class="node-duration">⏱️ 10 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">20 hrs</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arrows" style="padding: 8px 0;"><span class="arrow-icon">⬇️</span></div>
+                    
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.3.1.3</div>
+                            <div class="node-name">External API Integration Services</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 6-8</span>
+                                <span class="node-duration">⏱️ 10 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">20 hrs</span>
+                        </div>
+                        <div class="node">
+                            <div class="node-id">WBS 1.3.2.3</div>
+                            <div class="node-name">User Management Interface</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 8</span>
+                                <span class="node-duration">⏱️ 5 days | DELAYED (leveling)</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">12 hrs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrows"><span class="arrow-icon">⬇️</span></div>
+
+                <!-- Phase 4: Testing -->
+                <div class="phase">
+                    <div class="phase-title"><span class="icon">🧪</span> Phase 4: Testing (Weeks 8-9)</div>
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.4.1</div>
+                            <div class="node-name">Unit Testing (pytest + Jest)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 8</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 All Members</span>
+                            </div>
+                            <span class="node-hours">26 hrs total</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.4.2</div>
+                            <div class="node-name">Integration Testing</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 8</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">8 hrs</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arrows" style="padding: 8px 0;"><span class="arrow-icon">⬇️</span></div>
+                    
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.4.3</div>
+                            <div class="node-name">System Testing (E2E)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 9</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">18 hrs total</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.4.4</div>
+                            <div class="node-name">User Acceptance Testing (UAT)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 9</span>
+                                <span class="node-duration">⏱️ 3 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">8 hrs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrows"><span class="arrow-icon">⬇️</span></div>
+
+                <!-- Phase 5: Deployment -->
+                <div class="phase">
+                    <div class="phase-title"><span class="icon">🚀</span> Phase 5: Deployment (Weeks 9-10)</div>
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.5.1</div>
+                            <div class="node-name">Docker Containerization & Environment Setup</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 9</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">10 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.5.2</div>
+                            <div class="node-name">Hugging Face Spaces Deployment</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 9-10</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">8 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.5.3</div>
+                            <div class="node-name">Production Release & Monitoring</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 10</span>
+                                <span class="node-duration">⏱️ 3 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                                <span class="resource-tag">👤 i222559</span>
+                            </div>
+                            <span class="node-hours">10 hrs total</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrows"><span class="arrow-icon">⬇️</span></div>
+
+                <!-- Phase 6: Closure -->
+                <div class="phase">
+                    <div class="phase-title"><span class="icon">📝</span> Phase 6: Project Closure (Week 10)</div>
+                    <div class="nodes-row">
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.6.1</div>
+                            <div class="node-name">Technical Documentation (README, API Docs)</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 10</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">10 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.6.2</div>
+                            <div class="node-name">Training Materials & Video Tutorials</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 10</span>
+                                <span class="node-duration">⏱️ 3 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222489</span>
+                            </div>
+                            <span class="node-hours">6 hrs</span>
+                        </div>
+                        <div class="node critical">
+                            <div class="node-id">WBS 1.6.3</div>
+                            <div class="node-name">Final Report & Lessons Learned</div>
+                            <div class="node-details">
+                                <span class="node-week">Week 10</span>
+                                <span class="node-duration">⏱️ 5 days</span>
+                            </div>
+                            <div class="node-resource">
+                                <span class="resource-tag">👤 i222518</span>
+                            </div>
+                            <span class="node-hours">10 hrs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrows"><span class="arrow-icon">⬇️</span></div>
+
+                <!-- End Milestone -->
+                <div class="phase">
+                    <div class="nodes-row">
+                        <div class="node milestone">
+                            <div class="node-id">MILESTONE</div>
+                            <div class="node-name">🎉 PROJECT COMPLETE</div>
+                            <div class="node-details">
+                                <span class="node-week">December 15, 2025</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <h3>📖 Legend</h3>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-box critical"></div>
+                        <span><strong>Critical Path</strong> — Zero slack, delays affect project end</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box normal"></div>
+                        <span><strong>Non-Critical</strong> — Has float/slack available</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box milestone"></div>
+                        <span><strong>Milestone</strong> — Key project checkpoint</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Path Info -->
+            <div class="critical-path-info">
+                <h4>🔴 Critical Path Analysis - CPM Method</h4>
+                <p><strong>Critical Path:</strong> <code>START</code> → <code>1.1.1</code> → <code>1.1.3</code> → <code>1.2.1</code> → <code>1.2.3</code> → <code>1.3.1.1</code> → <code>1.3.1.3</code> → <code>1.4.2</code> → <code>1.4.3</code> → <code>1.5.2</code> → <code>1.5.3</code> → <code>1.6.3</code> → <code>END</code></p>
+                <p><strong>Total Duration:</strong> 10 weeks (70 working days) | <strong>Project Value:</strong> Environmental Monitoring for 30M+ Citizens</p>
+                <p><strong>Leveling Techniques Applied:</strong> Activity Splitting (ML Model Dev), Activity Delay (User Mgmt UI), Resource Redistribution across early weeks</p>
+                <p><strong>Leveling Impact:</strong> After resource leveling, the critical path duration remains unchanged at 10 weeks. Resource allocation has been smoothed to eliminate all over-allocations while maintaining the original deadline.</p>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="value">10</div>
+                        <div class="label">Weeks Duration</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value">506</div>
+                        <div class="label">Total Hours</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value">26</div>
+                        <div class="label">Total Activities</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value">22</div>
+                        <div class="label">Critical Activities</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value">0</div>
+                        <div class="label">Over-allocated Weeks</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value">15%</div>
+                        <div class="label">Peak Reduction</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

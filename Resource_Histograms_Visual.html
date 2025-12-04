@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Histograms - Pollution Monitor Agent | SPM Assignment 04 | FAST-NUCES Fall 2025</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 35px;
+            padding: 35px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 8px;
+        }
+        
+        .header .team-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .header .team-member {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+        
+        .header .team-member .icon {
+            font-size: 1.5rem;
+        }
+        
+        .header .team-member .info {
+            text-align: left;
+        }
+        
+        .header .team-member .name {
+            font-weight: 600;
+            color: white;
+        }
+        
+        .header .team-member .roll {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .section-title {
+            color: white;
+            text-align: center;
+            margin: 40px 0 25px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .section-title .badge {
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+        }
+        
+        .section-title .badge.success {
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+        
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .chart-card h3 {
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chart-card .chart-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+        
+        .chart-container.large {
+            height: 350px;
+        }
+        
+        .legend-info {
+            margin-top: 18px;
+            padding: 14px;
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .legend-info span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .legend-info .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        .legend-info .dot.over {
+            background: #e63946;
+        }
+        
+        .legend-info .dot.optimal {
+            background: #27ae60;
+        }
+        
+        .legend-info .dot.under {
+            background: #f39c12;
+        }
+        
+        .legend-info .dot.capacity {
+            background: #667eea;
+        }
+        
+        .metrics-section {
+            margin-top: 40px;
+        }
+        
+        .metrics-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+        
+        .metrics-card h3 {
+            color: #1a1a2e;
+            margin-bottom: 25px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid;
+            border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .metric-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .metric-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .metric-item.success {
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+        }
+        
+        .metric-item.success:hover {
+            box-shadow: 0 10px 30px rgba(39, 174, 96, 0.4);
+        }
+        
+        .metric-item.warning {
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+        }
+        
+        .metric-item.warning:hover {
+            box-shadow: 0 10px 30px rgba(230, 57, 70, 0.4);
+        }
+        
+        .metric-item .value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-item .label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .metric-item .change {
+            font-size: 0.85rem;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 14px 18px;
+            text-align: center;
+        }
+        
+        .comparison-table thead th {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .comparison-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .comparison-table tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .comparison-table td {
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .comparison-table .improvement {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header .team-info {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Resource Loading & Leveling Analysis</h1>
+            <p class="subtitle">Pollution Monitor Agent Project | SPM Assignment 04 | CS-401 Fall 2025 | Instructor: Dr. Nauman Bin Ali</p>
+            
+            <div class="team-info">
+                <div class="team-member">
+                    <span class="icon">👨‍💼</span>
+                    <div class="info">
+                        <div class="name">Abdur Rehman</div>
+                        <div class="roll">i222518 | PM/Backend | 176 hrs</div>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <span class="icon">🎨</span>
+                    <div class="info">
+                        <div class="name">Rayyan Ahmed</div>
+                        <div class="roll">i222489 | Frontend/UI | 168 hrs</div>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <span class="icon">🤖</span>
+                    <div class="info">
+                        <div class="name">Muhammad Bilal Raza</div>
+                        <div class="roll">i222559 | AI/ML/DevOps | 162 hrs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BEFORE LEVELING -->
+        <h2 class="section-title">
+            <span class="badge">⚠️ BEFORE</span>
+            Initial Resource Loading - Identifying Over-allocations
+        </h2>
+        
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>👨‍💼 Abdur Rehman (i222518)</h3>
+                <p class="chart-subtitle">Project Manager / Backend Developer - Before Leveling</p>
+                <div class="chart-container">
+                    <canvas id="member1Before"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot over"></span> Over-allocated: W4 (22h), W5 (24h), W6 (22h)</span>
+                    <span><span class="dot under"></span> Under-allocated: W3 (16h)</span>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>🎨 Rayyan Ahmed (i222489)</h3>
+                <p class="chart-subtitle">Frontend Developer / UI Designer - Before Leveling</p>
+                <div class="chart-container">
+                    <canvas id="member2Before"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot over"></span> Over-allocated: W6 (22h), W7 (24h)</span>
+                    <span><span class="dot under"></span> Under-allocated: W1 (8h), W2 (10h)</span>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>🤖 Muhammad Bilal Raza (i222559)</h3>
+                <p class="chart-subtitle">AI/ML Engineer / DevOps Lead - Before Leveling</p>
+                <div class="chart-container">
+                    <canvas id="member3Before"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot over"></span> Over-allocated: W5 (24h), W6 (22h), W9 (22h)</span>
+                    <span><span class="dot under"></span> Under-allocated: W1 (10h), W3 (8h)</span>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>📊 Project-Level Total</h3>
+                <p class="chart-subtitle">Combined Team Resource Usage - Before Leveling</p>
+                <div class="chart-container">
+                    <canvas id="projectBefore"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot over"></span> Over Capacity (60h): W5 (68h +13%), W6 (66h +10%), W7 (62h +3%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AFTER LEVELING -->
+        <h2 class="section-title">
+            <span class="badge success">✅ AFTER</span>
+            Optimized Resource Loading - All Conflicts Resolved
+        </h2>
+        
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>👨‍💼 Abdur Rehman (i222518)</h3>
+                <p class="chart-subtitle">Project Manager / Backend Developer - After Leveling</p>
+                <div class="chart-container">
+                    <canvas id="member1After"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot optimal"></span> All weeks ≤ 20 hrs | Peak: 20 hrs (W4-W5)</span>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>🎨 Rayyan Ahmed (i222489)</h3>
+                <p class="chart-subtitle">Frontend Developer / UI Designer - After Leveling</p>
+                <div class="chart-container">
+                    <canvas id="member2After"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot optimal"></span> All weeks ≤ 20 hrs | Gradual ramp-up achieved</span>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>🤖 Muhammad Bilal Raza (i222559)</h3>
+                <p class="chart-subtitle">AI/ML Engineer / DevOps Lead - After Leveling</p>
+                <div class="chart-container">
+                    <canvas id="member3After"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot optimal"></span> All weeks ≤ 20 hrs | Peak during ML development (W5-W7)</span>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>📊 Project-Level Total</h3>
+                <p class="chart-subtitle">Combined Team Resource Usage - After Leveling</p>
+                <div class="chart-container">
+                    <canvas id="projectAfter"></canvas>
+                </div>
+                <div class="legend-info">
+                    <span><span class="dot optimal"></span> All weeks within capacity (max 58 hrs, 3% under)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARISON -->
+        <h2 class="section-title">
+            📈 Before vs After Comparison
+        </h2>
+        
+        <div class="chart-grid">
+            <div class="chart-card full-width">
+                <h3>📊 Project-Level Resource Usage Comparison</h3>
+                <p class="chart-subtitle">Visual comparison of resource loading before and after leveling techniques</p>
+                <div class="chart-container large">
+                    <canvas id="comparison"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- METRICS -->
+        <div class="metrics-section">
+            <div class="metrics-card">
+                <h3>📈 Resource Leveling Impact Metrics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-item warning">
+                        <div class="value">68→58</div>
+                        <div class="label">Peak Hours Reduced</div>
+                        <div class="change">↓ 15% reduction</div>
+                    </div>
+                    <div class="metric-item success">
+                        <div class="value">3→0</div>
+                        <div class="label">Over-allocated Weeks</div>
+                        <div class="change">↓ 100% eliminated</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="value">32→18</div>
+                        <div class="label">Load Variance (hrs)</div>
+                        <div class="change">↓ 44% smoother</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="value">10.2→5.8</div>
+                        <div class="label">Std. Deviation</div>
+                        <div class="change">↓ 43% improvement</div>
+                    </div>
+                    <div class="metric-item success">
+                        <div class="value">78%→92%</div>
+                        <div class="label">Resource Efficiency</div>
+                        <div class="change">↑ 14% increase</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="value">506</div>
+                        <div class="label">Total Project Hours</div>
+                        <div class="change">Maintained</div>
+                    </div>
+                </div>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Week</th>
+                            <th>Before (hrs)</th>
+                            <th>After (hrs)</th>
+                            <th>Change</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Week 1</td>
+                            <td>36</td>
+                            <td>40</td>
+                            <td class="improvement">+4 hrs</td>
+                            <td>✅ Better utilization</td>
+                        </tr>
+                        <tr>
+                            <td>Week 2</td>
+                            <td>42</td>
+                            <td>44</td>
+                            <td class="improvement">+2 hrs</td>
+                            <td>✅ Better utilization</td>
+                        </tr>
+                        <tr>
+                            <td>Week 3</td>
+                            <td>42</td>
+                            <td>48</td>
+                            <td class="improvement">+6 hrs</td>
+                            <td>✅ Better utilization</td>
+                        </tr>
+                        <tr>
+                            <td>Week 4</td>
+                            <td>58</td>
+                            <td>56</td>
+                            <td class="improvement">-2 hrs</td>
+                            <td>✅ Optimal</td>
+                        </tr>
+                        <tr>
+                            <td>Week 5</td>
+                            <td style="color: #e63946; font-weight: bold;">68 ⚠️</td>
+                            <td>58</td>
+                            <td class="improvement">-10 hrs</td>
+                            <td>✅ Fixed over-allocation</td>
+                        </tr>
+                        <tr>
+                            <td>Week 6</td>
+                            <td style="color: #e63946; font-weight: bold;">66 ⚠️</td>
+                            <td>58</td>
+                            <td class="improvement">-8 hrs</td>
+                            <td>✅ Fixed over-allocation</td>
+                        </tr>
+                        <tr>
+                            <td>Week 7</td>
+                            <td style="color: #e63946; font-weight: bold;">62 ⚠️</td>
+                            <td>54</td>
+                            <td class="improvement">-8 hrs</td>
+                            <td>✅ Fixed over-allocation</td>
+                        </tr>
+                        <tr>
+                            <td>Week 8</td>
+                            <td>52</td>
+                            <td>52</td>
+                            <td>0 hrs</td>
+                            <td>✅ Maintained</td>
+                        </tr>
+                        <tr>
+                            <td>Week 9</td>
+                            <td>58</td>
+                            <td>52</td>
+                            <td class="improvement">-6 hrs</td>
+                            <td>✅ Smoother</td>
+                        </tr>
+                        <tr>
+                            <td>Week 10</td>
+                            <td>50</td>
+                            <td>44</td>
+                            <td class="improvement">-6 hrs</td>
+                            <td>✅ Closure phase</td>
+                        </tr>
+                        <tr style="font-weight: bold; background: #e3f2fd !important;">
+                            <td>TOTAL</td>
+                            <td>534</td>
+                            <td>506</td>
+                            <td class="improvement">-28 hrs</td>
+                            <td>✅ Optimized</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const weeks = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10'];
+        const capacity = 20;
+        const teamCapacity = 60;
+
+        // Before Leveling Data
+        const member1Before = [18, 20, 16, 22, 24, 22, 18, 20, 18, 16];
+        const member2Before = [8, 10, 18, 16, 20, 22, 24, 16, 18, 20];
+        const member3Before = [10, 12, 8, 20, 24, 22, 20, 16, 22, 14];
+        const projectBefore = [36, 42, 42, 58, 68, 66, 62, 52, 58, 50];
+
+        // After Leveling Data
+        const member1After = [18, 18, 18, 20, 20, 18, 16, 18, 16, 14];
+        const member2After = [10, 14, 18, 18, 18, 20, 18, 18, 18, 16];
+        const member3After = [12, 12, 12, 18, 20, 20, 20, 16, 18, 14];
+        const projectAfter = [40, 44, 48, 56, 58, 58, 54, 52, 52, 44];
+
+        // Chart defaults
+        Chart.defaults.font.family = "'Segoe UI', sans-serif";
+        Chart.defaults.font.size = 12;
+
+        function createIndividualChart(ctx, data, label) {
+            const colors = data.map(v => v > capacity ? 'rgba(230, 57, 70, 0.85)' : 
+                                        v < 12 ? 'rgba(243, 156, 18, 0.85)' : 
+                                        'rgba(102, 126, 234, 0.85)');
+            const borderColors = data.map(v => v > capacity ? '#e63946' : 
+                                              v < 12 ? '#f39c12' : 
+                                              '#667eea');
+            
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: borderColors,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        annotation: {
+                            annotations: {
+                                capacityLine: {
+                                    type: 'line',
+                                    yMin: capacity,
+                                    yMax: capacity,
+                                    borderColor: '#e63946',
+                                    borderWidth: 3,
+                                    borderDash: [8, 4],
+                                    label: {
+                                        display: true,
+                                        content: 'Capacity: 20 hrs',
+                                        position: 'end',
+                                        backgroundColor: '#e63946',
+                                        font: { size: 10 }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 30,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Hours',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createIndividualChartAfter(ctx, data, label) {
+            const colors = data.map(v => 'rgba(39, 174, 96, 0.85)');
+            const borderColors = data.map(v => '#27ae60');
+            
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: borderColors,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        annotation: {
+                            annotations: {
+                                capacityLine: {
+                                    type: 'line',
+                                    yMin: capacity,
+                                    yMax: capacity,
+                                    borderColor: '#667eea',
+                                    borderWidth: 3,
+                                    borderDash: [8, 4],
+                                    label: {
+                                        display: true,
+                                        content: 'Capacity: 20 hrs',
+                                        position: 'end',
+                                        backgroundColor: '#667eea',
+                                        font: { size: 10 }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 30,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Hours',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createProjectChart(ctx, data, isAfter = false) {
+            const colors = data.map(v => v > teamCapacity ? 'rgba(230, 57, 70, 0.85)' : 
+                                        isAfter ? 'rgba(39, 174, 96, 0.85)' : 'rgba(102, 126, 234, 0.85)');
+            const borderColors = data.map(v => v > teamCapacity ? '#e63946' : 
+                                              isAfter ? '#27ae60' : '#667eea');
+            
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: [{
+                        label: 'Total Team Hours',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: borderColors,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        annotation: {
+                            annotations: {
+                                capacityLine: {
+                                    type: 'line',
+                                    yMin: teamCapacity,
+                                    yMax: teamCapacity,
+                                    borderColor: '#e63946',
+                                    borderWidth: 3,
+                                    borderDash: [8, 4],
+                                    label: {
+                                        display: true,
+                                        content: 'Team Capacity: 60 hrs',
+                                        position: 'end',
+                                        backgroundColor: '#e63946',
+                                        font: { size: 10 }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 80,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Total Hours',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create Before Leveling Charts
+        createIndividualChart(document.getElementById('member1Before'), member1Before, 'Hours');
+        createIndividualChart(document.getElementById('member2Before'), member2Before, 'Hours');
+        createIndividualChart(document.getElementById('member3Before'), member3Before, 'Hours');
+        createProjectChart(document.getElementById('projectBefore'), projectBefore, false);
+
+        // Create After Leveling Charts
+        createIndividualChartAfter(document.getElementById('member1After'), member1After, 'Hours');
+        createIndividualChartAfter(document.getElementById('member2After'), member2After, 'Hours');
+        createIndividualChartAfter(document.getElementById('member3After'), member3After, 'Hours');
+        createProjectChart(document.getElementById('projectAfter'), projectAfter, true);
+
+        // Create Comparison Chart
+        new Chart(document.getElementById('comparison'), {
+            type: 'line',
+            data: {
+                labels: weeks,
+                datasets: [{
+                    label: 'Before Leveling',
+                    data: projectBefore,
+                    borderColor: '#e63946',
+                    backgroundColor: 'rgba(230, 57, 70, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    borderWidth: 3
+                }, {
+                    label: 'After Leveling',
+                    data: projectAfter,
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 13, weight: 'bold' }
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            capacityLine: {
+                                type: 'line',
+                                yMin: teamCapacity,
+                                yMax: teamCapacity,
+                                borderColor: '#667eea',
+                                borderWidth: 3,
+                                borderDash: [10, 5],
+                                label: {
+                                    display: true,
+                                    content: 'Team Capacity: 60 hrs/week',
+                                    position: 'start',
+                                    backgroundColor: '#667eea',
+                                    font: { size: 11 }
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 80,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Total Team Hours',
+                            font: { size: 14, weight: 'bold' }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Project Weeks (Oct 7 - Dec 15, 2025)',
+                            font: { size: 14, weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
